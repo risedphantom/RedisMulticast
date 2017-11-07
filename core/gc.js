@@ -149,7 +149,10 @@ function garbageCollector (consumer, logger) {
           const message = JSON.parse(range[0])
           debug(`Collecting message [${message.uuid}]...`)
           if (checkMessageExpiration(message)) collectExpiredMessage(message, pqName, onMessageCollected)
-          else collectMessage(message, pqName, null, onMessageCollected)
+          else {
+            message.attempts--
+            collectMessage(message, pqName, null, onMessageCollected)
+          }
         }
       }
       const onConsumerOnline = (err, online) => {
@@ -219,6 +222,9 @@ function garbageCollector (consumer, logger) {
   function collectMessage (message, processingQueue, error, callback) {
     let destQueueName = ''
     let logInfo = ''
+
+    if (error instanceof Error) error = { message: error.message, stack: error.stack }
+
     message.attempts += 1
     message.error = error || {}
     if (message.attempts > messageRetryThreshold) {

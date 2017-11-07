@@ -13,7 +13,7 @@ module.exports = {
     client.scan('0', 'match', keys.patternQueueName, 'count', 1000, (err, res) => {
       if (err) callback(err)
       else {
-        const [cur, queues] = res
+        const [queues] = res
         callback(null, queues)
       }
     })
@@ -28,7 +28,7 @@ module.exports = {
     client.scan('0', 'match', keys.patternQueueNameDead, 'count', 1000, (err, res) => {
       if (err) callback(err)
       else {
-        const [cur, queues] = res
+        const [queues] = res
         callback(null, queues)
       }
     })

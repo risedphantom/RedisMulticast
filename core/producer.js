@@ -26,7 +26,7 @@ class Producer extends EventEmitter {
 
     const monitorEnabled = !!(config.monitor && config.monitor.enabled)
     if (monitorEnabled) {
-      this[sLogger].trace('Turning on statistics collection.')
+      this[sLogger].debug('Turning on statistics collection.')
       this.stats = statsFactory(this, config)
       this.stats.start()
     }
@@ -46,7 +46,7 @@ class Producer extends EventEmitter {
       ttl: 0
     }
 
-    this[sLogger].trace(`Message generated: [${message.uuid}]`)
+    this[sLogger].debug(`Message generated: [${message.uuid}]`)
     if (ttl) message.ttl = ttl
     this.client.lpush(this.keys.keyQueueName, JSON.stringify(message), (err) => {
       if (err) callback(err)

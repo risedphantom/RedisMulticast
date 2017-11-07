@@ -8,7 +8,7 @@ module.exports = {
   log: {
     enabled: 1,
     options: {
-      level: 'trace'
+      level: 'debug'
     }
   },
   monitor: {

@@ -123,10 +123,10 @@ class Consumer extends EventEmitter {
        * @param message
        */
       onMessageExpired (message) {
-        consumer[sLogger].trace(`Message [${message.uuid}] has expired`)
+        consumer[sLogger].debug(`Message [${message.uuid}] has expired`)
         consumer[sGarbageCollector].collectExpiredMessage(message, consumer.keys.keyQueueNameProcessing, () => {
           if (consumer[sStats]) consumer[sStats].incrementAcknowledgedSlot()
-          consumer[sLogger].trace(`Message [${message.uuid}] successfully processed`)
+          consumer[sLogger].debug(`Message [${message.uuid}] successfully processed`)
           consumer.emit('next')
         })
       },
@@ -173,7 +173,7 @@ class Consumer extends EventEmitter {
    * @param {object} error
    */
   [sProcessMessageFailure] (message, error) {
-    this[sLogger].error(`Consume failure! Message: [${message.id}]. Reason: [${error}]`)
+    this[sLogger].error(`Consume failure! Message: [${message.uuid}]. Reason: [${error}]`)
     if (this[sStats]) this[sStats].incrementUnacknowledgedSlot()
     this[sGarbageCollector].collectMessage(message, this.keys.keyQueueNameProcessing, error, (err) => {
       if (err) this.emit('error', err)
@@ -182,11 +182,11 @@ class Consumer extends EventEmitter {
   }
 
   [sGetNextMessage] () {
-    this[sLogger].trace('Waiting for new messages...')
+    this[sLogger].debug('Waiting for new messages...')
     this[sRedisClient].brpoplpush(this.keys.keyQueueName, this.keys.keyQueueNameProcessing, 0, (err, payload) => {
       if (err) this.emit('error', err)
       else {
-        this[sLogger].trace('Got new message...')
+        this[sLogger].debug('Got new message...')
         if (this[sStats]) this[sStats].incrementProcessingSlot()
         const message = JSON.parse(payload)
         this.emit('message', message)
@@ -201,7 +201,7 @@ class Consumer extends EventEmitter {
     this.status = CONSUMER_STATUS_CONSUMING
     let isTimeout = false
     let timer = null
-    this[sLogger].trace(`Processing message [${message.uuid}]...`)
+    this[sLogger].debug(`Processing message [${message.uuid}]...`)
 
     try {
       if (this.messageConsumeTimeout) {
@@ -215,7 +215,7 @@ class Consumer extends EventEmitter {
         if (err) this.emit('error', err)
         else {
           if (this[sStats]) this[sStats].incrementAcknowledgedSlot()
-          this[sLogger].trace(`Message [${message.uuid}] successfully processed`)
+          this[sLogger].debug(`Message [${message.uuid}] successfully processed`)
           this.emit('next')
           if (this.isTest) this.emit('message_consumed', JSON.stringify(message))
         }

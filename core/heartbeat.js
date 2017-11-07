@@ -9,7 +9,7 @@ const redisClient = require('./redis-client')
  * @returns {object}
  */
 function heartBeat (consumer) {
-  const { queueName, consumerId, config } = consumer
+  const { config } = consumer
   const { keyHeartBeat } = consumer.keys
   let client = null
   let halt = false
@@ -100,10 +100,10 @@ heartBeat.getOnlineConsumers = function getOnlineConsumers (client, callback) {
       callback(null, consumers)
     }
   }
-  const onScanResults = (err, res0) => {
+  const onScanResults = (err, res) => {
     if (err) callback(err)
     else {
-      const [cur, keys] = res0
+      const [keys] = res
       if (keys && keys.length) {
         heartBeatKeys = keys
         client.mget(keys, onConsumers)

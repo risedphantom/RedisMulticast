@@ -17,10 +17,10 @@ class RandomStringQueueConsumer extends Consumer {
    * @param callback
    */
   consume (message, callback) {
-    this[sLogger].trace(`Starting custom processing for message: "${JSON.stringify(message)}"`)
+    this[sLogger].debug(`Starting custom processing for message: "${JSON.stringify(message)}"`)
 
     // Stub processing
-    if ((Math.random() * 5 | 0) === 0) callback(new Error('Processing message error!'))
+    if ((Math.random() * 20 | 0) === 0) callback(new Error('5 percent chance of failure'))
     else callback()
   }
 }
