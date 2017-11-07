@@ -236,7 +236,7 @@ function garbageCollector (consumer, logger) {
     }
     const messageString = JSON.stringify(message)
     const multi = client.multi()
-    client.lpush(destQueueName, messageString)
+    client.rpush(destQueueName, messageString)
     client.del(processingQueue)
     debug(logInfo)
     multi.exec((err) => {
