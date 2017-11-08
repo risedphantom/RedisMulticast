@@ -11,8 +11,6 @@ const loggerModule = require('./logger')
 commander
   .version('0.1.0')
   .option('-g, --get-errors', 'output failed messages and exit')
-  .option('-p, --producer', 'run as producer')
-  .option('-c, --consumer', 'run as consumer')
 
 commander.parse(process.argv)
 
@@ -32,14 +30,26 @@ if (commander.getErrors) {
   })
 }
 
-if (commander.producer) {
-  logger.info('-= RUNNING AS PRODUCER =-')
-  const producer = new Producer(config.preferences.random_string_queue_name, config)
-  producer.run()
-}
+const producer = new Producer(config.preferences.random_string_queue_name, config)
+producer.run()
 
-if (commander.consumer) {
-  logger.info('-= RUNNING AS CONSUMER =-')
-  const consumer = new Consumer(config, {messageRetryThreshold: 1})
-  consumer.run()
-}
+const consumer = new Consumer(config, {messageRetryThreshold: 1})
+
+setTimeout(() => {
+  consumer.canRun(producer.producerId, (err, can) => {
+    if (err) logger.error(`Error occurred while trying to run consumer [${err}]`)
+    if (can) {
+      consumer.run()
+
+      const tryToStop = () => {
+        consumer.canRun(producer.producerId, (err, can) => {
+          if (err) logger.error(`Error occurred while trying to stop consumer [${err}]`)
+          if (!can) consumer.stop()
+          else setTimeout(tryToStop, config.preferences.try_to_run_interval)
+        })
+      }
+
+      tryToStop()
+    }
+  })
+}, 1000)

@@ -19,6 +19,8 @@ module.exports = {
 
   preferences: {
     random_string_queue_name: 'random_string_queue',
-    produce_interval: 500
+    produce_interval: 500,
+    accure_lock_interval: 2000,
+    try_to_stop_interval: 2000
   }
 }

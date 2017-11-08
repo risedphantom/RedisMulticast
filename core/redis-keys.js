@@ -30,6 +30,8 @@ module.exports = {
       keys.keyQueueNameDead = `dead:${queueName}`
       keys.keyGCLock = `gc:${queueName}:lock`
       keys.keyGCLockTmp = `${keys.keyGCLock}:tmp`
+      keys.keyProducerLock = `producer:${queueName}:lock`
+      keys.keyProducerLockTmp = `${keys.keyProducerLock}:tmp`
       if (consumerId) {
         keys.keyQueueNameProcessing = `processing:${queueName}:${consumerId}`
         keys.keyHeartBeat = `heartbeat:${queueName}:${consumerId}`

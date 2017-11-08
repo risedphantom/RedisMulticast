@@ -7,6 +7,8 @@ const redisClient = require('./redis-client')
 const statsFactory = require('./stats')
 const logger = require('../logger')
 
+const PRODUCER_LOCK_TTL = 2 // 2 seconds
+
 const produceMessage = Symbol('produceMessage')
 const sLogger = Symbol('logger')
 
@@ -72,6 +74,36 @@ class Producer extends EventEmitter {
    */
   produceWithTTL (body, ttl, callback) {
     this[produceMessage](body, ttl, callback)
+  }
+
+  /**
+   * @param {function} callback
+   */
+  accureLock (callback) {
+    const producerId = this.producerId
+    const client = this.client
+    const keyProducerLock = this.keys.keyProducerLock
+    const keyProducerLockTmp = this.keys.keyProducerLockTmp
+
+    const onUpdateLock = (err) => {
+      if (err) callback(err)
+      else callback(null, true)
+    }
+
+    const onLockTmp = (err, success) => {
+      if (err) callback(err)
+      else if (!success) callback(null, false)
+      else client.set(keyProducerLock, producerId, 'EX', PRODUCER_LOCK_TTL, onUpdateLock)
+    }
+
+    const onGetLock = (err, id) => {
+      if (err) callback(err)
+      else if (id === producerId) client.set(keyProducerLock, producerId, 'EX', PRODUCER_LOCK_TTL, onUpdateLock)
+      else if (id) callback(null, false)
+      else client.set(keyProducerLockTmp, producerId, 'NX', 'EX', PRODUCER_LOCK_TTL, onLockTmp)
+    }
+
+    client.get(keyProducerLock, onGetLock)
   }
 }
 

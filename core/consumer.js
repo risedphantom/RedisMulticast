@@ -62,10 +62,9 @@ class Consumer extends EventEmitter {
     this.isTest = process.env.NODE_ENV === 'test'
     this.status = CONSUMER_STATUS_DOWN
 
+    this[sRedisClient] = redisClient.getNewInstance(this.config)
     this[sLogger] = logger.getNewInstance(`${this.queueName}:${this.consumerId}`, config.log)
-
     this[sHeartBeat] = heartBeat(this)
-
     this[sGarbageCollector] = garbageCollector(this, this[sLogger])
 
     const monitorEnabled = !!(config.monitor && config.monitor.enabled)
@@ -249,7 +248,6 @@ class Consumer extends EventEmitter {
       /**
        * Wait for messages
        */
-      this[sRedisClient] = redisClient.getNewInstance(this.config)
       this.emit('next')
     }
   }
@@ -263,6 +261,18 @@ class Consumer extends EventEmitter {
    */
   isRunning () {
     return ([CONSUMER_STATUS_GOING_DOWN, CONSUMER_STATUS_DOWN].indexOf(this.status) === -1)
+  }
+
+  /**
+   * @param {function} callback
+   */
+  getSuspendFlag (key, callback) {
+    const onGetKey = (err, id) => {
+      if (err) callback(err)
+      else callback(null, id)
+    }
+
+    this[sRedisClient].get(key, onGetKey)
   }
 
   /**
